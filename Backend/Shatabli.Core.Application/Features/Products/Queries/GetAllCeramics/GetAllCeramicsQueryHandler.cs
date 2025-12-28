@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Shatabli.Core.Application.Features.Designs.Queries.GetAllDesigns;
 using Shatabli.Core.Application.Interfaces;
@@ -19,16 +20,29 @@ namespace Shatabli.Core.Application.Features.Products.Queries.GetAllCeramics
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
 
-        public GetAllCeramicsQueryHandler(IApplicationDbContext context, IMapper mapper)
+        public const string CacheKey = "AllCeramics";
+        private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(30);
+
+        public GetAllCeramicsQueryHandler(IApplicationDbContext context, IMapper mapper, IMemoryCache cache)
         {
             _context = context;
             _mapper = mapper;
+            _cache = cache;
         }
+
         async Task<Result<GetAllCeramicsResponse>> IRequestHandler<GetAllCeramicsQuery, Result<GetAllCeramicsResponse>>.Handle(GetAllCeramicsQuery request, CancellationToken cancellationToken)
         {
             try
             {
+                // Check if data exists in cache
+                if (_cache.TryGetValue(CacheKey, out GetAllCeramicsResponse cachedResponse))
+                {
+                    return Result<GetAllCeramicsResponse>.Success(cachedResponse, "Ceramics retrieved from cache.");
+                }
+
+                // Fetch from database if not cached
                 var result = await _context.Products
                     .Where(p => p.Category == ProductCategory.FlooringCeramics)
                     .ProjectTo<CeramicDTO>(_mapper.ConfigurationProvider)
@@ -38,6 +52,9 @@ namespace Shatabli.Core.Application.Features.Products.Queries.GetAllCeramics
                 {
                     ceramicList = result ?? new List<CeramicDTO>()
                 };
+
+                // Store in cache with expiration
+                _cache.Set(CacheKey, response, CacheExpiration);
 
                 return Result<GetAllCeramicsResponse>.Success(response, "Ceramics retrieved successfully.");
             }

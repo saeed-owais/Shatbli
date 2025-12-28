@@ -19,11 +19,27 @@ export interface RegisterRequest {
   phoneNumber: string;
 }
 
-// استجابة تسجيل الدخول (الـ API بيرجع البيانات مباشرة مش nested)
-export interface AuthResponse {
-  userId: string;
+// بيانات المستخدم داخل الـ Response
+export interface AuthUserData {
   email: string;
   fullName: string;
   token: string;
   role: string;
+}
+
+// استجابة تسجيل الدخول
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: AuthUserData;
+  errors: Record<string, string[]>;
+  timestamp: string;
+}
+
+// استجابة التسجيل
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  errors: Record<string, string[]>;
+  timestamp: string;
 }

@@ -2,6 +2,6 @@ google-genai
 fastapi
 uvicorn
 python-multipart
-
-command 
-    python -m uvicorn main:app --reload
+d
+command     
+python -m uvicorn main:app --reload`

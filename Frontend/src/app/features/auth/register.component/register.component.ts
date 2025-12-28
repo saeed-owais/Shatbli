@@ -54,10 +54,16 @@ export class RegisterComponent {
       const { confirmPassword, ...registerData } = this.registerForm.getRawValue();
 
       this.authService.register(registerData).subscribe({
-        next: () => {
-          // التسجيل ناجح - توجيه المستخدم لصفحة تسجيل الدخول
-          // لأن الـ Register API بيرجع userId فقط، مش token
-          this.router.navigate(['/auth/login']);
+        next: (response) => {
+          this.isLoading.set(false);
+          if (response.success) {
+            // التسجيل ناجح - توجيه المستخدم لصفحة تسجيل الدخول
+            this.router.navigate(['/auth/login']);
+          } else {
+            // التسجيل فشل - عرض رسالة الخطأ
+            const errorMessages = Object.values(response.errors).flat();
+            this.errorMessage.set(errorMessages.length > 0 ? errorMessages.join(', ') : response.message);
+          }
         },
         error: (err) => {
           this.isLoading.set(false);

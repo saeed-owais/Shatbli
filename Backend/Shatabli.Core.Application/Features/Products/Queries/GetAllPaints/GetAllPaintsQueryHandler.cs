@@ -37,3 +37,4 @@ namespace Shatabli.Core.Application.Features.Products.Queries.GetAllPaints
         }
     }
 }
+

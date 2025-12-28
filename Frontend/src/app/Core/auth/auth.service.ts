@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
-import { AuthResponse, User, LoginRequest, RegisterRequest } from '../../shared/models/user.model';
+import { AuthResponse, User, LoginRequest, RegisterRequest, RegisterResponse } from '../../shared/models/user.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -46,25 +46,21 @@ export class AuthService {
   }
 
   register(data: RegisterRequest) {
-    // الـ Register API بيرجع userId فقط (plain text string)، مش JSON
-    return this.http.post(`${this.apiUrl}/Users/register`, data, {
-      responseType: 'text'
-    });
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/Users/register`, data);
   }
 
   private saveAuthData(res: AuthResponse): void {
-    // التأكد من وجود البيانات قبل حفظها
-    // الـ API بيرجع البيانات مباشرة: { userId, email, fullName, token, role }
-    if (res && res.token && res.userId) {
+    // التأكد من نجاح العملية ووجود البيانات قبل حفظها
+    if (res?.success && res.data?.token) {
       const user: User = {
-        id: res.userId,
-        email: res.email,
-        fullName: res.fullName,
-        role: res.role,
-        token: res.token
+        id: '', // الـ API الجديد لا يرجع userId
+        email: res.data.email,
+        fullName: res.data.fullName,
+        role: res.data.role,
+        token: res.data.token
       };
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('token', res.token);
+      localStorage.setItem('token', res.data.token);
       this.currentUserSig.set(user);
     }
   }

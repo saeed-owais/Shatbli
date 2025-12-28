@@ -33,6 +33,7 @@ namespace Shatabli
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddMemoryCache();
 
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddCoreApplicationService();
